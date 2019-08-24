@@ -33,33 +33,71 @@ namespace Bezier.Editor
 
             EditorGUI.EndProperty();
         }
+
         private void InspectorGizmoDrawMode([NotNull] SerializedProperty property)
         {
             var nodeType = GetNodeTypeProperty(property);
+            var posPropIn = property.FindPropertyRelative("_in");
+            var posPropOut = property.FindPropertyRelative("_out");
+
             var newNodeType = (BezierPath.NodeType) EditorGUILayout.EnumPopup("Node Type",
                 (BezierPath.NodeType) nodeType.enumValueIndex);
+
+            var valueChanged = nodeType.enumValueIndex != (int) newNodeType;
             nodeType.enumValueIndex = (int) newNodeType;
+
+            if (valueChanged && newNodeType == BezierPath.NodeType.Connected)
+            {
+                // TODO: Fix this duplication of node logic!
+                if (posPropIn.vector3Value != -posPropOut.vector3Value)
+                {
+                    posPropOut.vector3Value = -posPropIn.vector3Value;
+                }
+            }
         }
 
-        private static void InspectorPositionControl([NotNull] SerializedProperty property, [NotNull] string name, [NotNull] GUIContent label)
+        private static void InspectorWaypointPosition(SerializedProperty property)
         {
             EditorGUI.BeginChangeCheck();
-            var posProp = property.FindPropertyRelative(name);
-            var newValue = EditorGUILayout.Vector3Field(label, posProp.vector3Value);
+            var posProp = property.FindPropertyRelative(nameof(BezierPath.Node.position));
+            var newValue = EditorGUILayout.Vector3Field(new GUIContent("Position"), posProp.vector3Value);
             if (EditorGUI.EndChangeCheck())
             {
                 posProp.vector3Value = newValue;
             }
         }
 
-        private static void InspectorWaypointPosition(SerializedProperty property) =>
-            InspectorPositionControl(property, nameof(BezierPath.Node.position), new GUIContent("Position"));
+        private static void InspectorInPosition(SerializedProperty property)
+        {
+            var posPropIn = property.FindPropertyRelative("_in");
+            var posPropOut = property.FindPropertyRelative("_out");
+            var type = (BezierPath.NodeType)property.FindPropertyRelative("type").enumValueIndex;
 
-        private static void InspectorInPosition(SerializedProperty property) =>
-            InspectorPositionControl(property, nameof(BezierPath.Node.@in), new GUIContent("Ingoing Control"));
+            EditorGUI.BeginChangeCheck();
+            var newValue = EditorGUILayout.Vector3Field(new GUIContent("Ingoing Control"), posPropIn.vector3Value);
+            if (EditorGUI.EndChangeCheck())
+            {
+                // TODO: Fix this duplication of node logic!
+                posPropIn.vector3Value = newValue;
+                if (type == BezierPath.NodeType.Connected) posPropOut.vector3Value = -newValue;
+            }
+        }
 
-        private static void InspectorOutPosition(SerializedProperty property) =>
-            InspectorPositionControl(property, nameof(BezierPath.Node.@out), new GUIContent("Outgoing Control"));
+        private static void InspectorOutPosition(SerializedProperty property)
+        {
+            var posPropIn = property.FindPropertyRelative("_in");
+            var posPropOut = property.FindPropertyRelative("_out");
+            var type = (BezierPath.NodeType) property.FindPropertyRelative("type").enumValueIndex;
+
+            EditorGUI.BeginChangeCheck();
+            var newValue = EditorGUILayout.Vector3Field(new GUIContent("Outgoing Control"), posPropOut.vector3Value);
+            if (EditorGUI.EndChangeCheck())
+            {
+                // TODO: Fix this duplication of node logic!
+                posPropOut.vector3Value = newValue;
+                if (type == BezierPath.NodeType.Connected) posPropIn.vector3Value = -newValue;
+            }
+        }
 
         private bool IsValid([NotNull] SerializedProperty property) => null != property.FindPropertyRelative(nameof(BezierPath.Node.type));
 

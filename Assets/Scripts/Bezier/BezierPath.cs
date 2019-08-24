@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
+using UnityEditor;
 using UnityEngine;
 
 namespace Bezier
@@ -11,10 +13,22 @@ namespace Bezier
         private GizmoDrawMode gizmoDrawMode = GizmoDrawMode.Complete;
 
         [SerializeField]
+        private bool closed;
+
+        [SerializeField, NotNull]
         private List<Node> nodes = new List<Node>();
+
+        public int Length => nodes.Count;
+
+        [NotNull]
+        public Node this[int index] => nodes[index];
 
         private void OnDrawGizmos()
         {
+            // Only draw Gizmos when the object is unselected.
+            // If the object is selected, the inspector takes care of it.
+            if (Selection.activeObject == gameObject) return;
+
             var drawMode = gizmoDrawMode;
             if (drawMode == GizmoDrawMode.None) return;
 
@@ -44,6 +58,7 @@ namespace Bezier
             }
 
             // Line connecting to previous waypoint
+            if (!closed) return;
             if (drawMode != GizmoDrawMode.Complete || nodes.Count <= 2) return;
             var first = nodes[0];
             var last = nodes[nodes.Count - 1];
@@ -52,56 +67,51 @@ namespace Bezier
             Gizmos.DrawLine(last.position, first.position);
         }
 
-        private void OnDrawGizmosSelected()
-        {
-            var drawMode = gizmoDrawMode;
-            if (drawMode != GizmoDrawMode.Complete) return;
-
-            var tf = transform;
-            Gizmos.matrix = tf.localToWorldMatrix;
-
-            var handleInColor = Color.blue;
-            var handleOutColor = Color.red;
-            var handleConnectionColor = Color.grey;
-
-            for (var index = 0; index < nodes.Count; ++index)
-            {
-                var node = nodes[index];
-                if (node == null) continue;
-                ref var pos = ref node.position;
-
-                // Handles
-                Gizmos.color = handleInColor;
-                Gizmos.DrawSphere(node.@in + pos, 0.125f * 0.5f);
-
-                Gizmos.color = handleOutColor;
-                Gizmos.DrawSphere(node.@out + pos, 0.125f * 0.5f);
-
-                // Line connecting handles
-                Gizmos.color = handleConnectionColor;
-                Gizmos.DrawLine(node.@in + pos, node.@out + pos);
-            }
-        }
-
         [Serializable]
         public class Node
         {
             public NodeType type;
             public Vector3 position;
-            public Vector3 @in;
-            public Vector3 @out;
+
+            [SerializeField]
+            private Vector3 _in;
+
+            [SerializeField]
+            private Vector3 _out;
 
             public Node() => Reset();
+
+            public Vector3 In
+            {
+                get => _in;
+                set
+                {
+                    _in = value;
+                    if (type != NodeType.Connected) return;
+                    _out = -value;
+                }
+            }
+
+            public Vector3 Out
+            {
+                get => _out;
+                set
+                {
+                    _out = value;
+                    if (type != NodeType.Connected) return;
+                    _in = -value;
+                }
+            }
 
             public void Reset()
             {
                 type = NodeType.Connected;
                 position = new Vector3(0f, 0, 0);
-                @in = new Vector3(0f, 0, -.5f);
-                @out = new Vector3(0f, 0, .5f);
+                _in = new Vector3(0f, 0, -.5f);
+                _out = new Vector3(0f, 0, .5f);
             }
 
-            public override string ToString() => $"{type} at: {position}, in: {@in}, out: {@out}";
+            public override string ToString() => $"{type} at: {position}, in: {_in}, out: {_out}";
         }
 
         [Serializable]

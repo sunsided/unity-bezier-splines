@@ -8,6 +8,8 @@ namespace Bezier.Editor
     [CustomEditor(typeof(BezierPath))]
     public class BezierPathEditor : UnityEditor.Editor
     {
+        private const int LineWidth = 3;
+
         private BezierPath _path;
 
         private bool _showWaypoints = true;
@@ -21,6 +23,7 @@ namespace Bezier.Editor
         {
             serializedObject.Update();
 
+            InspectorClosedPath();
             InspectorGizmoDrawMode();
             InspectorNodeList();
 
@@ -30,7 +33,116 @@ namespace Bezier.Editor
 
         private void OnSceneGUI()
         {
+            var closedPath = serializedObject.FindProperty("closed").boolValue;
+            var nodesProp = serializedObject.FindProperty("nodes");
+            var nodeCount = nodesProp.arraySize;
+
+            var size = HandleUtility.GetHandleSize(_path.transform.position);
+            var snap = Vector3.up * 0.1f;
+
+            var pathTransform = _path.transform;
+            // Handles.Label(pathTransform.position, "start");
+
+            // Draw individual node segments.
+            for (var index = 0; index < nodeCount; ++index)
+            {
+                var node = _path[index]; // TODO: Do this via serialized property
+                var connected = node.type == BezierPath.NodeType.Connected;
+
+                // Make sure Gizmos/Handle coordinates are local to the parent.
+                Handles.matrix = pathTransform.localToWorldMatrix;
+
+                // Connect waypoints
+                if (index > 0)
+                {
+                    Handles.color = Color.grey;
+                    Handles.DrawDottedLine(_path[index - 1].position, node.position, LineWidth);
+                }
+
+                // Draw position handle
+                // TODO: We may want to allow a rotation control here anyways.
+                EditorGUI.BeginChangeCheck();
+                Handles.color = Color.gray;
+                var nodePosition = Handles.FreeMoveHandle(node.position, Quaternion.identity, size * 0.125f, snap, Handles.CubeHandleCap);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(target, "Position of waypoint");
+                    node.position = nodePosition;
+                }
+
+                // Connect current outgoing control with next incoming control.
+                if (index < nodeCount - 1)
+                {
+                    var next = _path[index + 1];
+
+                    Handles.color = Color.magenta;
+                    Handles.DrawLine(
+                        node.Out + nodePosition,
+                        next.In + next.position);
+                }
+
+                // Make sure Gizmos/Handle coordinates are local to the parent.
+                Handles.matrix *= Matrix4x4.Translate(nodePosition);
+
+                // Draw incoming control handle. Unconnected paths don't need an initial incoming control.
+                if (index > 0 || closedPath)
+                {
+                    Handles.color = Color.blue;
+                    Handles.DrawLine(Vector3.zero, node.In);
+
+                    EditorGUI.BeginChangeCheck();
+                    var handlePos = Handles.FreeMoveHandle(node.In, Quaternion.identity, size * 0.125f, snap,
+                        Handles.SphereHandleCap);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(target, "Position of control");
+                        node.In = handlePos;
+                    }
+                }
+
+                // Draw outgoing control handle. Unconnected paths don't need a final outgoing control.
+                if (index < nodeCount - 1 || closedPath)
+                {
+                    Handles.color = Color.red;
+                    Handles.DrawLine(Vector3.zero, node.Out);
+
+                    EditorGUI.BeginChangeCheck();
+                    var handlePos = Handles.FreeMoveHandle(node.Out, Quaternion.identity, size * 0.125f, snap,
+                        Handles.SphereHandleCap);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(target, "Position of control");
+                        node.Out = handlePos;
+                    }
+                }
+            }
+
+            // Connect waypoints
+            if (closedPath)
+            {
+                Handles.matrix = pathTransform.localToWorldMatrix;
+
+                var first = _path[0];
+                var last = _path[nodeCount - 1];
+
+                Handles.color = Color.grey;
+                Handles.DrawDottedLine(last.position, first.position, LineWidth);
+
+                // Connect in- and out-points.
+                Handles.color = Color.magenta;
+                Handles.DrawLine(
+                    last.Out + last.position,
+                    first.In + first.position);
+            }
         }
+
+        private void InspectorClosedPath()
+        {
+            var nodeType = serializedObject.FindProperty("closed");
+            var newValue = EditorGUILayout.Toggle("Closed Path", nodeType.boolValue);
+            nodeType.boolValue = newValue;
+        }
+
 
         private void InspectorGizmoDrawMode()
         {
@@ -87,7 +199,7 @@ namespace Bezier.Editor
 
             // Lastly, since the constructor wasn't involved, we're now going
             // to actively initialize the node.
-            _path.First().Reset();
+            _path.First().Reset(); // TODO: Do this via serialized property
         }
 
         private void OnAddWaypointToEndItemClicked()
@@ -103,7 +215,7 @@ namespace Bezier.Editor
 
             // Lastly, since the constructor wasn't involved, we're now going
             // to actively initialize the node.
-            _path.Last().Reset();
+            _path.Last().Reset(); // TODO: Do this via serialized property
         }
 
         private void OnRemoveAllNodesItemClicked()
