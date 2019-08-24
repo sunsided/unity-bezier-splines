@@ -120,7 +120,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &364169941
+--- !u!1 &414168135
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -128,8 +128,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 364169943}
-  - component: {fileID: 364169942}
+  - component: {fileID: 414168137}
+  - component: {fileID: 414168136}
   m_Layer: 0
   m_Name: BezierPath
   m_TagString: Untagged
@@ -137,13 +137,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &364169942
+--- !u!114 &414168136
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 364169941}
+  m_GameObject: {fileID: 414168135}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f421d27e75b7aa5e18419b2bc8494679, type: 3}
@@ -153,21 +153,29 @@ MonoBehaviour:
   nodes:
   - type: 0
     position: {x: 0, y: 0, z: 0}
-    in: {x: 1, y: 0, z: 0}
-    out: {x: -1, y: 0, z: 0}
+    in: {x: 0, y: 0, z: -0.5}
+    out: {x: 0, y: 0, z: 0.5}
+  - type: 0
+    position: {x: 0, y: 0, z: 1}
+    in: {x: 0, y: 0, z: -0.5}
+    out: {x: 0, y: 0, z: 0.5}
   - type: 0
     position: {x: 0, y: 0, z: 2}
-    in: {x: 1, y: 0, z: 0}
-    out: {x: -1, y: 0, z: 0}
---- !u!4 &364169943
+    in: {x: 0, y: 0, z: -0.5}
+    out: {x: 0, y: 0, z: 0.5}
+  - type: 0
+    position: {x: 0, y: 0, z: 3}
+    in: {x: 0, y: 0, z: -0.5}
+    out: {x: 0, y: 0, z: 0.5}
+--- !u!4 &414168137
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 364169941}
+  m_GameObject: {fileID: 414168135}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.8265877, y: -0.6990838, z: 0.07198334}
+  m_LocalPosition: {x: 0.30514717, y: -0.5528941, z: 0.16867495}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

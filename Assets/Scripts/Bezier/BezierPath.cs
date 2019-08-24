@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Bezier
 {
-    public class BezierPath : MonoBehaviour
+    public class BezierPath : MonoBehaviour, IEnumerable<BezierPath.Node>
     {
         [SerializeField]
         private GizmoDrawMode gizmoDrawMode = GizmoDrawMode.Complete;
@@ -86,10 +86,22 @@ namespace Bezier
         [Serializable]
         public class Node
         {
-            public NodeType type = NodeType.Connected;
-            public Vector3 position = new Vector3(0f, 0, 0);
-            public Vector3 @in = new Vector3(0f, 0, -1);
-            public Vector3 @out = new Vector3(0f, 0, 1);
+            public NodeType type;
+            public Vector3 position;
+            public Vector3 @in;
+            public Vector3 @out;
+
+            public Node() => Reset();
+
+            public void Reset()
+            {
+                type = NodeType.Connected;
+                position = new Vector3(0f, 0, 0);
+                @in = new Vector3(0f, 0, -.5f);
+                @out = new Vector3(0f, 0, .5f);
+            }
+
+            public override string ToString() => $"{type} at: {position}, in: {@in}, out: {@out}";
         }
 
         [Serializable]
@@ -106,5 +118,9 @@ namespace Bezier
             WaypointOnly,
             None
         }
+
+        public IEnumerator<Node> GetEnumerator() => nodes.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable) nodes).GetEnumerator();
     }
 }
