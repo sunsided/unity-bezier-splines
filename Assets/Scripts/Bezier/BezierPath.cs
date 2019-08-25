@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEditor;
@@ -7,7 +6,7 @@ using UnityEngine;
 
 namespace Bezier
 {
-    public class BezierPath : MonoBehaviour, IEnumerable<BezierPath.Node>
+    public class BezierPath : MonoBehaviour
     {
         [SerializeField]
         private GizmoDrawMode gizmoDrawMode = GizmoDrawMode.Complete;
@@ -16,12 +15,9 @@ namespace Bezier
         private bool closed;
 
         [SerializeField, NotNull]
-        private List<Node> nodes = new List<Node>();
+        private List<BezierPathNode> nodes = new List<BezierPathNode>();
 
-        public int Length => nodes.Count;
-
-        [NotNull]
-        public Node this[int index] => nodes[index];
+        public bool Closed => closed;
 
         private void OnDrawGizmos()
         {
@@ -42,7 +38,7 @@ namespace Bezier
             {
                 var node = nodes[index];
                 if (node == null) continue;
-                ref var pos = ref node.position;
+                 var pos = node.Position;
 
                 // Waypoint
                 Gizmos.color = waypointColor;
@@ -54,7 +50,7 @@ namespace Bezier
                 var previous = nodes[index - 1];
 
                 Gizmos.color = waypointConnectionColor;
-                Gizmos.DrawLine(previous.position, pos);
+                Gizmos.DrawLine(previous.Position, pos);
             }
 
             // Line connecting to previous waypoint
@@ -64,61 +60,7 @@ namespace Bezier
             var last = nodes[nodes.Count - 1];
 
             Gizmos.color = waypointConnectionColor;
-            Gizmos.DrawLine(last.position, first.position);
-        }
-
-        [Serializable]
-        public class Node
-        {
-            public NodeType type;
-            public Vector3 position;
-
-            [SerializeField]
-            private Vector3 _in;
-
-            [SerializeField]
-            private Vector3 _out;
-
-            public Node() => Reset();
-
-            public Vector3 In
-            {
-                get => _in;
-                set
-                {
-                    _in = value;
-                    if (type != NodeType.Connected) return;
-                    _out = -value;
-                }
-            }
-
-            public Vector3 Out
-            {
-                get => _out;
-                set
-                {
-                    _out = value;
-                    if (type != NodeType.Connected) return;
-                    _in = -value;
-                }
-            }
-
-            public void Reset()
-            {
-                type = NodeType.Connected;
-                position = new Vector3(0f, 0, 0);
-                _in = new Vector3(0f, 0, -.5f);
-                _out = new Vector3(0f, 0, .5f);
-            }
-
-            public override string ToString() => $"{type} at: {position}, in: {_in}, out: {_out}";
-        }
-
-        [Serializable]
-        public enum NodeType
-        {
-            Connected,
-            Broken
+            Gizmos.DrawLine(last.Position, first.Position);
         }
 
         [Serializable]
@@ -128,9 +70,5 @@ namespace Bezier
             WaypointOnly,
             None
         }
-
-        public IEnumerator<Node> GetEnumerator() => nodes.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable) nodes).GetEnumerator();
     }
 }
