@@ -51,9 +51,6 @@ namespace Bezier
             // TODO: When the pairs (p1,p2), (p2,p3) or (p3,p4) are on the same point, we have a quadratic B-spline.
             // TODO: When the pairs (p1,p2,p3) or (p2,p3,p4) are on the same point, we have a line.
 
-            // TODO: This isn't really needed - we can extrapolate points if we need to.
-            t = Mathf.Clamp01(t);
-
             var it = 1 - t;
             var it2 = it * it;
             var it3 = it2 * it;
