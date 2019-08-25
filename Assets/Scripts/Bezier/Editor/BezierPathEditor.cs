@@ -32,7 +32,7 @@ namespace Bezier.Editor
         private void OnSceneGUI() => _gui.DrawAllNodes((BezierPath) target);
 
         [NotNull]
-        private static List<BezierPathNode> GetNodesList([NotNull] Transform parent) => parent.GetComponentsInChildren<BezierPathNode>().ToList();
+        private static List<BezierPathNode> GetNodeList([NotNull] Transform parent) => parent.GetComponentsInChildren<BezierPathNode>().ToList();
 
         private void InspectorClosedPath()
         {
@@ -54,7 +54,7 @@ namespace Bezier.Editor
             _showWaypoints = EditorGUILayout.BeginFoldoutHeaderGroup(_showWaypoints, new GUIContent("Waypoints"), null, InspectorNodeListContextMenu);
             if (!_showWaypoints) return;
 
-            var nodes = GetNodesList(((BezierPath) target).transform);
+            var nodes = GetNodeList(((BezierPath) target).transform);
 
             for (var i = 0; i < nodes.Count; ++i)
             {
@@ -74,7 +74,7 @@ namespace Bezier.Editor
 
         private void InspectorNodeListContextMenu(Rect position)
         {
-            var nodes = GetNodesList(((BezierPath) target).transform);
+            var nodes = GetNodeList(((BezierPath) target).transform);
 
             var menu = new GenericMenu();
 
@@ -118,7 +118,7 @@ namespace Bezier.Editor
 
         private void OnRemoveAllNodesItemClicked()
         {
-            var nodes = GetNodesList(((BezierPath) target).transform);
+            var nodes = GetNodeList(((BezierPath) target).transform);
 
             var shouldRemove = EditorUtility.DisplayDialog(
                 "Removing waypoints",

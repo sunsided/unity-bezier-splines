@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
@@ -12,28 +13,46 @@ namespace Bezier
         private GizmoDrawMode gizmoDrawMode = GizmoDrawMode.Complete;
 
         [SerializeField]
+        private int subdivisions = 30;
+
+        [SerializeField]
         private bool closed;
 
-        [SerializeField, NotNull]
-        private List<BezierPathNode> nodes = new List<BezierPathNode>();
-
         public bool Closed => closed;
+
+        public int Subdivisions => subdivisions;
+
+        /// <summary>
+        /// Determines whether a child of the path is currently selected in the editor.
+        /// </summary>
+        private bool ChildSelectedInEditor => Selection.activeGameObject != null &&
+                                              Selection.activeGameObject.transform.parent != null &&
+                                              Selection.activeGameObject.transform.parent.gameObject == gameObject;
+
+        /// <summary>
+        /// Determines whether this path is currently selected in the editor.
+        /// </summary>
+        private bool SelectedInEditor => Selection.activeGameObject == gameObject;
+
+        [NotNull]
+        private static List<BezierPathNode> GetNodeList([NotNull] Transform parent) =>
+            parent.GetComponentsInChildren<BezierPathNode>().ToList();
 
         private void OnDrawGizmos()
         {
             // Only draw Gizmos when the object is unselected.
             // If the object is selected, the inspector takes care of it.
-            if (Selection.activeObject == gameObject) return;
+            if (SelectedInEditor || ChildSelectedInEditor) return;
 
             var drawMode = gizmoDrawMode;
             if (drawMode == GizmoDrawMode.None) return;
 
             var tf = transform;
-            Gizmos.matrix = tf.localToWorldMatrix;
 
             var waypointColor = Color.magenta;
-            var waypointConnectionColor = waypointColor;
+            var waypointConnectionColor = Color.gray;
 
+            var nodes = GetNodeList(tf);
             for (var index = 0; index < nodes.Count; ++index)
             {
                 var node = nodes[index];
