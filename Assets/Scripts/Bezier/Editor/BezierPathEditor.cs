@@ -22,6 +22,7 @@ namespace Bezier.Editor
 
             InspectorClosedPath();
             InspectorGizmoDrawMode();
+            InspectorSubdivisions();
             InspectorNodeList();
 
             // base.OnInspectorGUI();
@@ -45,8 +46,40 @@ namespace Bezier.Editor
         {
             var gizmoMode = serializedObject.FindProperty("gizmoDrawMode");
             Debug.Assert(gizmoMode != null, "gizmoMode != null");
+
+            EditorGUI.BeginChangeCheck();
             var newDrawMode = (BezierPath.GizmoDrawMode) EditorGUILayout.EnumPopup("Gizmo Draw Mode", (BezierPath.GizmoDrawMode) gizmoMode.enumValueIndex);
-            gizmoMode.enumValueIndex = (int) newDrawMode;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(target, "Gizmo Mode");
+                gizmoMode.enumValueIndex = (int) newDrawMode;
+            }
+        }
+
+        private void InspectorSubdivisions()
+        {
+            var subdivisions = serializedObject.FindProperty("subdivisions");
+            Debug.Assert(subdivisions != null, "subdivisions != null");
+
+            var previousValue = subdivisions.intValue;
+            if (previousValue < 0)
+            {
+                previousValue = 1;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            var newValue = EditorGUILayout.IntField("Subdivisions", previousValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(target, "Subdivisions");
+
+                if (newValue < 0)
+                {
+                    newValue = 1;
+                }
+
+                subdivisions.intValue = newValue;
+            }
         }
 
         private void InspectorNodeList()

@@ -24,7 +24,7 @@ namespace Bezier
             set => type = value;
         }
 
-        public Vector3 Position
+        public Vector3 Center
         {
             get => transform.position;
             set => transform.position = value;

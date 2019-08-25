@@ -88,12 +88,12 @@ namespace Bezier.Editor
                 using (new Handles.DrawingScope(Color.gray))
                 {
                     EditorGUI.BeginChangeCheck();
-                    var nodePosition = Handles.FreeMoveHandle(node.Position, Quaternion.identity, positionCapSize, snap,
+                    var nodePosition = Handles.FreeMoveHandle(node.Center, Quaternion.identity, positionCapSize, snap,
                         positionCap);
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(node, "Position of waypoint");
-                        node.Position = nodePosition;
+                        node.Center = nodePosition;
                         // TODO: Selection.activeGameObject = node.gameObject;
                     }
                 }
@@ -187,7 +187,7 @@ namespace Bezier.Editor
                     {
                         using (new Handles.DrawingScope(Color.gray))
                         {
-                            Handles.DrawDottedLine(currentNode.Position, nextNode.Position, DashedLineWidth);
+                            Handles.DrawDottedLine(currentNode.Center, nextNode.Center, DashedLineWidth);
                         }
                     }
 
@@ -197,8 +197,8 @@ namespace Bezier.Editor
                         using (new Handles.DrawingScope(Color.magenta))
                         {
                             Handles.DrawDottedLine(
-                                currentNode.Out + currentNode.Position,
-                                nextNode.In + nextNode.Position,
+                                currentNode.Out + currentNode.Center,
+                                nextNode.In + nextNode.Center,
                                 DottedLineWidth);
                         }
                     }
